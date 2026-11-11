@@ -312,7 +312,105 @@ Con mi especificación el mínimo de $5.000 nunca se alcanza: la base más peque
 
 ## Parte 4 · Caja blanca (0,6 pts)
 
-*(Grafo de flujo de calc, complejidad ciclomática por 3 métodos, caminos independientes, cobertura)*
+Análisis sobre el código heredado v1.0.0 (`envios.py`), tal como pide el documento, sin corregirlo todavía.
+
+### 4.1 Grafo de flujo de `calc`
+
+Bloques (sentencias): **N1–N15**. Nodos de decisión (predicado): **Q1–Q13**. Nodo de salida: **X**.
+
+```mermaid
+flowchart TD
+    N1["1 · entrada"] --> Q1{"Q1 · p≤0 ó p>50 ?"}
+    Q1 -- Sí --> N2["2 · raise ValueError"]
+    N2 --> X["salida"]
+    Q1 -- No --> Q2{"Q2 · p ≤ L1 ?"}
+    Q2 -- Sí --> N3["3 · t = 6000"]
+    Q2 -- No --> Q3{"Q3 · p ≤ L2 ?"}
+    Q3 -- Sí --> N4["4 · t = 9000"]
+    Q3 -- No --> N5["5 · t = 9000 + 800·(p−L2)"]
+    N3 --> Q4{"Q4 · z == urbana ?"}
+    N4 --> Q4
+    N5 --> Q4
+    Q4 -- Sí --> N6["6 · t = t  (no-op)"]
+    Q4 -- No --> Q5{"Q5 · z == rural ?"}
+    Q5 -- Sí --> N7["7 · t += t·RR"]
+    Q5 -- No --> Q6{"Q6 · z == nacional ?"}
+    Q6 -- Sí --> N8["8 · t += t·RN"]
+    Q6 -- No --> Q7["zona no reconocida: sigue"]
+    N6 --> Q7{"Q7 · d > 6 ?"}
+    N7 --> Q7
+    N8 --> Q7
+    Q7 -- Sí --> N9["9 · t += FINDE"]
+    N9 --> Q8
+    Q7 -- No --> Q8{"Q8 · c == frecuente ?"}
+    Q8 -- Sí --> N10["10 · t −= t·0,05"]
+    N10 --> Q9
+    Q8 -- No --> Q9{"Q9 · c == vip ?"}
+    Q9 -- Sí --> N11["11 · t −= t·V"]
+    N11 --> Q10
+    Q9 -- No --> Q10{"Q10 · cup ≠ None ?"}
+    Q10 -- No --> Q12{"Q12 · t < 5000 ?"}
+    Q10 -- Sí --> Q11{"Q11 · cup == ENVIO10 ?"}
+    Q11 -- Sí --> N12["12 · t −= t·0,10"]
+    Q11 -- No --> Q12
+    N12 --> Q12
+    Q12 -- Sí --> N13["13 · t = 5000"]
+    N13 --> Q13
+    Q12 -- No --> Q13{"Q13 · flag ?"}
+    Q13 -- Sí --> N14["14 · print"]
+    N14 --> N15["15 · return"]
+    Q13 -- No --> N15
+    N15 --> X
+```
+
+La rama "No" de **Q6** no ejecuta ningún bloque (zona no reconocida sigue silenciosamente): eso explica por qué el heredado no lanza error con zona inválida (defecto de R2).
+
+### 4.2 Complejidad ciclomática V(G) — tres formas
+
+Conteo: **N = 29 nodos** (15 bloques + 13 predicados + salida), **E = 41 aristas**, **P = 13 nodos predicado** (Q1 compone `p≤0 ó p>50` en una sola decisión).
+
+| Método | Cálculo | V(G) |
+|---|---|---|
+| 1 · Aristas y nodos | E − N + 2 = 41 − 29 + 2 | **14** |
+| 2 · Nodos predicado | P + 1 = 13 + 1 | **14** |
+| 3 · Regiones | 13 regiones encerradas + 1 región exterior | **14** |
+
+Las tres formas coinciden: **V(G) = 14**, un valor alto para una función de una sola responsabilidad — evidencia cuantitativa de la deuda técnica que se atacará en la Parte 6 (tras extraer funciones, la complejidad se reparte entre unidades de V(G) menor).
+
+> Nota: si se descompone la condición compuesta de Q1 en dos predicados simples, V(G) subiría a 15; se adopta el criterio estándar de un nodo de decisión por punto de ramificación.
+
+### 4.3 Caminos independientes y su caso de prueba
+
+Camino base (CB): Q1-No → Q2-No → Q3-No (proporcional) → Q4/Q5/Q6 No (zona inválida) → Q7-No → Q8-No → Q9-No → Q10-No → Q12-No → Q13-No → return. A partir de él, 13 desviaciones, una por decisión:
+
+| # | Camino independiente (difiere del base en) | Caso de prueba | Entradas → esperado |
+|---|---|---|---|
+| 1 | Q1-Sí (peso inválido) | CN-08 | (0, urbana, normal, 3) → error |
+| 2 | Q2-Sí (tramo 1) | CN-01 | (2, urbana, normal, 3) → $6.000 |
+| 3 | Q3-Sí (tramo 2) | CN-04 | (10, urbana, normal, 3) → $9.000 |
+| 4 | Q4-Sí (urbana) | CN-05 | (10,5, urbana, normal, 3) → $9.400 |
+| 5 | Q5-Sí (rural) | CN-10 | (2, rural, normal, 3) → $7.500 |
+| 6 | Q6-Sí (nacional) | CN-11 | (2, nacional, normal, 3) → $8.400 |
+| 7 | Q7-Sí (fin de semana) | CN-15 | (2, urbana, normal, 6) → $8.000 |
+| 8 | Q8-Sí (frecuente) | CN-17 | (2, urbana, frecuente, 3) → $5.700 |
+| 9 | Q9-Sí (vip) | CN-18 | (2, urbana, vip, 3) → $5.400 |
+| 10 | Q10-Sí, Q11-No (cupón no nulo sin ENVIO10) | CN-23 | (2, urbana, normal, 3, BIENVENIDA) → $6.000 |
+| 11 | Q11-Sí (ENVIO10) | CN-19 | (2, urbana, normal, 3, ENVIO10) → $5.400 |
+| 12 | Q12-Sí (mínimo $5.000; alcanzable solo en el heredado por doble descuento encadenado) | CN-20 | (2, urbana, vip, 3, ENVIO10) → heredado da $5.000 |
+| 13 | Q13-Sí (flag en True) | CW-01 | (2, urbana, normal, 3, flag=True) → $6.000 e imprime "costo: 6000" |
+
+Los 14 caminos (CB + 13) quedan cubiertos con 13 casos de la matriz de la Parte 3 más el caso CW-01 derivado del análisis de caja blanca.
+
+### 4.4 Cobertura de sentencias y de ramas
+
+**Cobertura de sentencias (100 % con 12 casos):** CN-08 (N2), CN-01 (N3), CN-04 (N4), CN-05 (N5, N6), CN-10 (N7), CN-11 (N8), CN-15 (N9), CN-17 (N10), CN-18 (N11), CN-19 (N12), CN-20 (N13, porque el heredado encadena vip+cupón y baja de $5.000), CW-01 (N14, N15).
+
+**Cobertura de ramas (100 % con 15 casos):** a los 12 anteriores se agregan:
+- **CN-12** (zona inválida): cubre la rama "No" de Q6, que no ejecuta sentencias y por eso no aporta a la cobertura de sentencias.
+- **CN-23** (cupón no nulo que no es ENVIO10): cubre la rama Q11-"No", inalcanzable por sentencias si solo se usa ENVIO10.
+- Cualquier caso con `flag=False` (p. ej. CN-01): cubre la rama Q13-"No".
+
+Conclusiones: (1) la cobertura de ramas exige los dos casos "sin efecto visible" (CN-12 y CN-23), que son los que exponen los defectos silenciosos de R2 y R7; (2) CN-20 es el único caso que activa el mínimo de $5.000 en el heredado — y es a la vez un defecto frente a mi regla B (solo el mayor): 6.000 × 0,90 × 0,90 = 4.860 → el heredado lo ajusta a $5.000 cuando lo correcto es $5.400.
 
 ---
 
