@@ -111,7 +111,53 @@ verificará con casos de prueba de la matriz de la Parte 3.
 
 ## Parte 2 · Plan de pruebas (0,5 pts)
 
-*(Escribe aquí: alcance, 4 niveles aplicados al caso, estrategia/ambiente/roles, riesgos con mitigación, criterios de entrada y salida)*
+**Producto:** función `calc(p, z, c, d, cup, flag)` del sistema de costos de EnvíaYa (Riohacha).
+**Especificación de referencia:** R1–R8 con mis parámetros (PMAX=45, L1=4, L2=10, RR=25 %, RN=40 %, V=10 %, S=$2.000; reglas D/E/B/F según mis dígitos).
+**Objetivo:** verificar que el código heredado v1.0.0 cumple la especificación, registrar los defectos, y validar el código corregido y refactorizado mediante regresión.
+
+### Alcance
+
+- **Dentro:** la lógica de cálculo del costo (validaciones de peso/zona/día, tramos, recargos de zona, fin de semana, descuentos y cupón, mínimo y redondeo).
+- **Fuera:** interfaces de usuario, persistencia/base de datos, servicios externos de mensajería, rendimiento y seguridad (la función es pura y local).
+
+### Niveles de prueba aplicados al caso
+
+| Nivel | ¿Cómo se aplica a EnvíaYa? | Evidencia |
+|---|---|---|
+| **Unidad** | Probar `calc` función por función: cada regla R1–R8 con sus particiones, límites (0, 4, 10, 45) y tabla de decisión cliente×cupón×finde. Es el nivel central de este parcial. | Suite pytest `tests/test_envios.py` |
+| **Integración** | Verificar la composición correcta de las reglas en un mismo cálculo: tramo → recargo de zona → descuentos → finde → mínimo → redondeo, en el orden que exige la especificación (es donde el heredado falla: orden de finde y descuentos). | Casos combinados de la matriz (p. ej. rural+vip+sábado+cupón) |
+| **Sistema** | Ejecutar el flujo completo como lo usaría el sistema de EnvíaYa: lote de envíos representativos de una jornada (todos los tramos, zonas, clientes y días 1–7) por la API pública de `envios.py`. | Matriz de ≥20 casos ejecutada contra el módulo completo |
+| **Aceptación** | Validar contra los criterios Dado/Cuando/Entonces de HU1–HU3 (Parte 1), simulando la aprobación del dueño del negocio. Los resultados esperados se calcularon a mano. | Mapeo HU ↔ casos en la matriz de trazabilidad |
+
+### Estrategia, ambiente y roles
+
+- **Estrategia:** pruebas basadas en especificación (caja negra: particiones de equivalencia, valores límite y tablas de decisión) reforzadas con caja blanca (grafo de flujo, complejidad ciclomática y caminos independientes). Automatización con pytest + pytest-cov. Ciclo: diseño de casos → ejecución contra el heredado → reporte de defectos → corrección/refactor → regresión completa.
+- **Ambiente:** Python 3.14 en Windows, pytest 9.1.1, pytest-cov 7.1.0, Git/GitHub. Ejecución local con `python -m pytest tests/ -v` y cobertura con `--cov=envios --cov-branch`.
+- **Roles (equipo de calidad de EnvíaYa):** analista de pruebas (diseño de particiones y tabla de decisión — yo), automatizador (suite pytest y cobertura — yo), gestor de configuración (ramas, etiquetas, CHANGELOG — yo). El docente actúa como cliente en la aceptación.
+
+### Riesgos y mitigación
+
+| Riesgo | Prob. | Impacto | Mitigación |
+|---|---|---|---|
+| Resultados esperados mal calculados a mano (descuentos encadenados, orden del finde) | Alta | Alto | Calcular cada caso paso a paso y revisar contra el ejemplo de referencia del documento; los casos dudosos se marcan y re-verifican |
+| Confusión entre la especificación propia y el comportamiento del heredado (asumir que el código es la verdad) | Alta | Alto | La especificación R1–R8 es la única fuente de verdad; toda diferencia se registra como defecto, no como "comportamiento normal" |
+| Errores de paridad en mis reglas D/E/B/F al diseñar casos | Media | Alto | Tabla "Mis parámetros" fijada al inicio del informe y en CONFIG; cada caso cita la regla que usa |
+| Cobertura insuficiente con pocas pruebas | Media | Medio | Mínimo 20 casos + caminos independientes de la caja blanca; medir cobertura de sentencias y ramas |
+| Redondeo ($50 arriba) y mínimo $5.000 pasados por alto | Media | Medio | Casos dedicados de R8 en valores que terminan exactamente en $x50 |
+
+### Criterios de entrada y salida
+
+**Entrada (para iniciar las pruebas):**
+1. Especificación R1–R8 completa y congelada con mis parámetros.
+2. Código heredado v1.0.0 etiquetado y CONFIG lleno.
+3. Matriz de casos diseñada con resultados esperados calculados a mano.
+4. Ambiente de pruebas operativo (pytest y pytest-cov instalados).
+
+**Salida (para dar por terminadas las pruebas):**
+1. 100 % de los casos de la matriz ejecutados, con resultado PASSED/FAILED registrado.
+2. Todos los defectos reportados con ID, severidad y prioridad.
+3. Cobertura de sentencias y de ramas medida y documentada.
+4. Tras la corrección (Parte 6): regresión completa en verde y cobertura ≥ antes de la corrección.
 
 ---
 
