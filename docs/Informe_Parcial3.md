@@ -38,24 +38,74 @@
 
 ### Historias de usuario (Dado / Cuando / Entonces)
 
-- **HU1 (pesos y tramos - R1, R3):** Como cliente de EnvíaYa, quiero que el costo dependa del peso de mi paquete, para pagar solo lo que corresponde.
-  - Dado un peso de 4 kg, cuando calculo el costo, entonces el tramo es $6.000 (L1 incluido).
-  - Dado un peso de 45,5 kg, cuando calculo el costo, entonces se lanza "peso inválido".
-- **HU2 (zonas y recargos - R4):** Como cliente, ...
-- **HU3 (cliente, cupón y fin de semana - R5, R6, R7, R8):** Como cliente, ...
-- *(Completa HU2 y HU3 con tus criterios Dado/Cuando/Entonces)*
+**HU1 · Costo por peso del paquete (cubre R1, R3, R8)**
+Como cliente de EnvíaYa, quiero que el costo de mi envío dependa del peso del
+paquete en tramos, para pagar exactamente lo que corresponde a su tamaño.
+
+Criterios de aceptación:
+- **Dado** un peso de 4 kg (igual a mi L1), **cuando** calculo el costo con zona
+  urbana y cliente normal, **entonces** se cobra el tramo 1: $6.000 (mi regla D,
+  par, incluye el límite: peso ≤ 4).
+- **Dado** un peso de 4,1 kg, **cuando** calculo el costo, **entonces** se cobra el
+  tramo 2: $9.000 (ya superó L1 = 4).
+- **Dado** un peso de 15 kg, **cuando** calculo el costo, **entonces** se cobra
+  $9.000 + $800 × (15 − 10) = $13.000 (proporcional sobre L2 = 10).
+- **Dado** un peso de 45,5 kg (mayor que mi PMAX = 45), **cuando** calculo el
+  costo, **entonces** se lanza el error "peso inválido".
+- **Dado** un peso de 0 kg o negativo, **cuando** calculo el costo, **entonces**
+  se lanza el error "peso inválido".
+
+**HU2 · Recargo por zona de destino (cubre R2, R4, R8)**
+Como cliente de EnvíaYa, quiero que el costo incluya el recargo según la zona
+de destino, para que el precio refleje el costo real de llevar el paquete allí.
+
+Criterios de aceptación:
+- **Dado** un envío a zona rural (mi RR = 25 %), **cuando** calculo el costo de
+  un paquete de 10 kg, **entonces** el costo es 9.000 × 1,25 = $11.250, que
+  redondeado al múltiplo de $100 más cercano (50 hacia arriba, R8) es **$11.300**.
+- **Dado** un envío a zona nacional (mi RN = 40 %), **cuando** calculo el costo
+  de un paquete de 10 kg, **entonces** el costo es 9.000 × 1,40 = **$12.600**.
+- **Dado** un envío a zona urbana, **cuando** calculo el costo, **entonces** no
+  se aplica ningún recargo por zona.
+- **Dado** una zona que no es urbana, rural ni nacional, **cuando** calculo el
+  costo, **entonces** se lanza un error (R2).
+- **Dado** un día fuera del rango 1 a 7, **cuando** calculo el costo, **entonces**
+  se lanza un error (R2).
+
+**HU3 · Cliente, cupón y fin de semana (cubre R5, R6, R7, R8)**
+Como cliente de EnvíaYa, quiero que se apliquen correctamente mi descuento de
+cliente, mi cupón y el recargo de fin de semana, para pagar lo justo en cada
+promoción.
+
+Criterios de aceptación (reglas B, E y F mías):
+- **Dado** un cliente vip (V = 10 %) con cupón ENVIO10 (10 %), **cuando** calculo
+  el costo de un paquete de 4 kg en zona urbana un miércoles, **entonces** solo
+  se aplica **el mayor** descuento (mi regla B, par) → 6.000 × 0,90 = **$5.400**.
+- **Dado** un envío el sábado (día 6) con cliente vip, **cuando** calculo el
+  costo, **entonces** el recargo de fin de semana (+$2.000, R5) se suma **después**
+  de los descuentos (mi regla E, impar) → 6.000 × 0,90 + 2.000 = **$7.400**.
+- **Dado** un cupón que no existe (por ejemplo "BIENVENIDA"), **cuando** calculo
+  el costo, **entonces** el cupón se ignora y el costo no cambia (mi regla F,
+  par, R7).
+- **Dado** un cálculo cuyo valor antes del redondeo fuera menor a $5.000,
+  **cuando** obtengo el resultado, **entonces** el costo final nunca es menor
+  que $5.000 y se entrega redondeado al múltiplo de $100 (R8).
 
 ### Matriz de trazabilidad
 
-| Requisito | Historia | Casos de prueba |
+| Requisito | Historia | Casos de prueba (se completan en la Parte 3) |
 |---|---|---|
-| R1 | HU1 | (completar con IDs de la Parte 3) |
-| R3 | HU1 | |
-| R4 | HU2 | |
-| R5 | HU3 | |
-| R6 | HU3 | |
-| R7 | HU3 | |
-| R8 | HU1, HU3 | |
+| R1 (peso válido, PMAX=45) | HU1 | CN-… |
+| R2 (zona y día válidos) | HU2 | CN-… |
+| R3 (tarifa base, L1=4, L2=10) | HU1 | CN-… |
+| R4 (recargo zona RR=25 %, RN=40 %) | HU2 | CN-… |
+| R5 (finde +$2.000 después de descuentos) | HU3 | CN-… |
+| R6 (descuentos, solo el mayor) | HU3 | CN-… |
+| R7 (cupón inexistente se ignora) | HU3 | CN-… |
+| R8 (mínimo $5.000 y redondeo a $100) | HU1, HU2, HU3 | CN-… |
+
+Cada requisito está cubierto por al menos una historia, y cada historia se
+verificará con casos de prueba de la matriz de la Parte 3.
 
 ---
 
