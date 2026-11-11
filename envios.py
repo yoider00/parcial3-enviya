@@ -50,4 +50,5 @@ def calc(p, z, c, d, cup=None, flag=False):
         t = 5000
     if flag:
         print("costo:", t)
-    return int(t / 100) * 100
+    # R8: redondeo al multiplo de $100 mas cercano, $50 hacia arriba
+    return int(t / 100 + 0.5) * 100
