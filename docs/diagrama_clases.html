@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 16px; background: #ffffff; font-family: Arial, sans-serif; }
+  .mermaid { display: inline-block; }
+</style>
+<script src="mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: "default",
+    class: { useMaxWidth: false } });
+  window.addEventListener("load", () => mermaid.run());
+</script>
+</head>
+<body>
+<div class="mermaid" id="d">
+classDiagram
+    class RecargoZona {
+        <<abstract>>
+        +aplicar(costo) float
+    }
+    class ZonaUrbana {
+        +aplicar(costo) float
+    }
+    class ZonaRural {
+        -RECARGO_RURAL
+        +aplicar(costo) float
+    }
+    class ZonaNacional {
+        -RECARGO_NACIONAL
+        +aplicar(costo) float
+    }
+    class calc {
+        <<funcion>>
+    }
+    RecargoZona <|-- ZonaUrbana
+    RecargoZona <|-- ZonaRural
+    RecargoZona <|-- ZonaNacional
+    calc ..> RecargoZona : usa ESTRATEGIA_ZONA
+</div>
+</body>
+</html>

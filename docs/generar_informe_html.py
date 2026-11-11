@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Genera Informe_Parcial3.html desde el markdown, con anexos de evidencias."""
-import markdown
+"""Genera Informe_Parcial3.html desde el markdown, con anexos de evidencias.
+Los diagramas Mermaid se insertan como imagenes PNG pre-renderizadas."""
+import html as _html
 import pathlib
+import re as _re
+
+import markdown
 
 base = pathlib.Path(r"C:\Users\yoide\Parcial3-EnviaYa\docs")
 texto = (base / "Informe_Parcial3.md").read_text(encoding="utf-8")
@@ -32,59 +36,65 @@ html_body = markdown.markdown(
     output_format="html5",
 )
 
-# Convertir bloques <pre><code class="language-mermaid"> en <div class="mermaid">
-# para que mermaid.run() los procese y los dibuje.
-import html as _html
-import re as _re
+# Reemplazar los bloques <pre><code class="language-mermaid"> por imagenes
+# pre-renderizadas (docs/capturas/*.png).
 
-html_body = _re.sub(
-    r'<pre><code class="language-mermaid">(.*?)</code></pre>',
-    lambda m: '<div class="mermaid">' + _html.unescape(m.group(1)) + "</div>",
-    html_body,
-    flags=_re.S,
+flujo_img = (
+    '<div class="fila-diagrama">'
+    '<figure><img src="capturas/diagrama_flujo_a.png" alt="Grafo de flujo, parte 1">'
+    "<figcaption>Parte 1 · entrada, tramos y zona</figcaption></figure>"
+    '<figure><img src="capturas/diagrama_flujo_b.png" alt="Grafo de flujo, parte 2">'
+    "<figcaption>Parte 2 · finde y descuentos<br>(N6/N7/N8 entran a Q7)</figcaption></figure>"
+    '<figure><img src="capturas/diagrama_flujo_c.png" alt="Grafo de flujo, parte 3">'
+    "<figcaption>Parte 3 · cupón, mínimo y salida<br>(Q10 continúa aquí)</figcaption></figure>"
+    "</div>"
 )
+
+clases_img = (
+    '<div class="diagrama-centro">'
+    '<figure><img src="capturas/diagrama_clases.png" alt="Diagrama de clases UML del patrón Estrategia">'
+    "<figcaption>Patrón Estrategia aplicado al recargo por zona</figcaption></figure>"
+    "</div>"
+)
+
+bloques = _re.findall(r'<pre><code class="language-mermaid">.*?</code></pre>', html_body, flags=_re.S)
+assert len(bloques) == 2, f"se esperaban 2 bloques mermaid, hay {len(bloques)}"
+html_body = html_body.replace(bloques[0], flujo_img, 1)
+html_body = html_body.replace(bloques[1], clases_img, 1)
 
 css = """
 <style>
   @page { size: A4; margin: 18mm 16mm; }
-  body { font-family: 'Segoe UI', Calibri, sans-serif; font-size: 11pt; line-height: 1.45; color: #1a1a2e; }
-  h1 { font-size: 20pt; color: #0d3b66; border-bottom: 3px solid #0d3b66; padding-bottom: 6px; }
-  h2 { font-size: 15pt; color: #0d3b66; border-bottom: 1px solid #9db4c0; padding-bottom: 4px; margin-top: 26px; }
-  h3 { font-size: 12.5pt; color: #14532d; margin-top: 18px; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.45;
+         color: #000000; background: #ffffff; }
+  h1 { font-size: 20pt; color: #000; border-bottom: 3px solid #000; padding-bottom: 6px; }
+  h2 { font-size: 15pt; color: #000; border-bottom: 1px solid #555; padding-bottom: 4px; margin-top: 26px; }
+  h3 { font-size: 12.5pt; color: #000; margin-top: 18px; }
   table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 9.5pt; }
-  th { background: #0d3b66; color: white; padding: 6px 8px; text-align: left; }
-  td { border: 1px solid #b8c4cc; padding: 5px 8px; }
-  tr:nth-child(even) td { background: #f2f7fa; }
-  code { font-family: Consolas, monospace; background: #eef2f5; padding: 1px 4px; border-radius: 3px; font-size: 9.5pt; }
-  pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 10px 12px; overflow-x: hidden; }
+  th { background: #000; color: #fff; padding: 6px 8px; text-align: left; }
+  td { border: 1px solid #555; padding: 5px 8px; color: #000; }
+  tr:nth-child(even) td { background: #f0f0f0; }
+  code { font-family: 'Courier New', monospace; background: #ececec; padding: 1px 4px;
+         border-radius: 3px; font-size: 9.5pt; color: #000; }
+  pre { background: #f7f7f7; border: 1px solid #bbb; border-radius: 6px; padding: 10px 12px; overflow-x: hidden; }
   pre code { background: none; font-size: 9pt; line-height: 1.35; white-space: pre-wrap; word-break: break-word; }
-  blockquote { border-left: 4px solid #f4a261; background: #fff8ef; padding: 8px 14px; margin: 10px 0; }
+  blockquote { border-left: 4px solid #000; background: #f2f2f2; padding: 8px 14px; margin: 10px 0; }
+  figure { margin: 4px; text-align: center; }
+  figure img { max-width: 100%; height: auto; }
+  figcaption { font-size: 8.5pt; color: #000; margin-top: 4px; }
+  .fila-diagrama { display: flex; gap: 6px; align-items: flex-start; justify-content: center; }
+  .fila-diagrama figure:nth-child(1) { width: 56%; }
+  .fila-diagrama figure:nth-child(2) { width: 21%; }
+  .fila-diagrama figure:nth-child(3) { width: 21%; }
+  .diagrama-centro { text-align: center; }
+  .diagrama-centro figure { display: inline-block; width: 65%; }
 </style>
 """
-
-mermaid_js = ""
-
-ruta_mermaid = base / "mermaid.min.js"
-if not ruta_mermaid.exists():
-    import urllib.request
-    urllib.request.urlretrieve(
-        "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js",
-        str(ruta_mermaid),
-    )
-    print("mermaid.min.js descargado")
-codigo_mermaid = ruta_mermaid.read_text(encoding="utf-8")
-mermaid_js = (
-    "<script>" + codigo_mermaid + "</script>"
-    "<script>window.addEventListener('load', function () {"
-    "mermaid.initialize({ startOnLoad: false, theme: 'default' });"
-    "mermaid.run().then(function () { document.title = 'MERMAID_READY'; });"
-    "});</script>"
-)
 
 html = (
     '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">'
     "<title>Parcial 3 - Informe - Yoider Brito</title>"
-    + css + mermaid_js + "</head><body>" + html_body + "</body></html>"
+    + css + "</head><body>" + html_body + "</body></html>"
 )
 
 salida = base / "Informe_Parcial3.html"

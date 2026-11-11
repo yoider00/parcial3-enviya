@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 16px; background: #ffffff; font-family: Arial, sans-serif; }
+  .mermaid { display: inline-block; }
+</style>
+<script src="mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: "default",
+    flowchart: { useMaxWidth: false, htmlLabels: true } });
+  window.addEventListener("load", () => mermaid.run());
+</script>
+</head>
+<body>
+<div class="mermaid" id="d">
+flowchart TD
+    N1["1 · entrada"] --> Q1{"Q1 · p≤0 ó p>50 ?"}
+    Q1 -- Sí --> N2["2 · raise ValueError"]
+    N2 --> XA["salida (error)"]
+    Q1 -- No --> Q2{"Q2 · p ≤ L1 ?"}
+    Q2 -- Sí --> N3["3 · t = 6000"]
+    Q2 -- No --> Q3{"Q3 · p ≤ L2 ?"}
+    Q3 -- Sí --> N4["4 · t = 9000"]
+    Q3 -- No --> N5["5 · t = 9000 + 800·(p−L2)"]
+    N3 --> Q4{"Q4 · z == urbana ?"}
+    N4 --> Q4
+    N5 --> Q4
+    Q4 -- Sí --> N6["6 · t = t  (no-op)"]
+    Q4 -- No --> Q5{"Q5 · z == rural ?"}
+    Q5 -- Sí --> N7["7 · t += t·RR"]
+    Q5 -- No --> Q6{"Q6 · z == nacional ?"}
+    Q6 -- Sí --> N8["8 · t += t·RN"]
+    Q6 -- No --> Q7["→ Q7 (zona no reconocida)"]
+    N6 --> Q7B["→ Q7"]
+    N7 --> Q7B
+    N8 --> Q7B
+</div>
+</body>
+</html>

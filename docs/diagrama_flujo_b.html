@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 16px; background: #ffffff; font-family: Arial, sans-serif; }
+  .mermaid { display: inline-block; }
+</style>
+<script src="mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: "default",
+    flowchart: { useMaxWidth: false, htmlLabels: true } });
+  window.addEventListener("load", () => mermaid.run());
+</script>
+</head>
+<body>
+<div class="mermaid" id="d">
+flowchart TD
+    Q7{"Q7 · d > 6 ?  (viene de N6/N7/N8)"} -- Sí --> N9["9 · t += FINDE"]
+    N9 --> Q8
+    Q7 -- No --> Q8{"Q8 · c == frecuente ?"}
+    Q8 -- Sí --> N10["10 · t −= t·0,05"]
+    N10 --> Q9
+    Q8 -- No --> Q9{"Q9 · c == vip ?"}
+    Q9 -- Sí --> N11["11 · t −= t·V"]
+    N11 --> Q10
+    Q9 -- No --> Q10{"Q10 · cup ≠ None ?"}
+    Q10 -- Sí --> SA["→ Q11 (Sí)"]
+    Q10 -- No --> SB["→ Q12 (No)"]
+</div>
+</body>
+</html>

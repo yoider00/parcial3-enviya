@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 16px; background: #ffffff; font-family: Arial, sans-serif; }
+  .mermaid { display: inline-block; }
+</style>
+<script src="mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: "default",
+    flowchart: { useMaxWidth: false, htmlLabels: true } });
+  window.addEventListener("load", () => mermaid.run());
+</script>
+</head>
+<body>
+<div class="mermaid" id="d">
+flowchart TD
+    N1["1 · entrada"] --> Q1{"Q1 · p≤0 ó p>50 ?"}
+    Q1 -- Sí --> N2["2 · raise ValueError"]
+    N2 --> X["salida"]
+    Q1 -- No --> Q2{"Q2 · p ≤ L1 ?"}
+    Q2 -- Sí --> N3["3 · t = 6000"]
+    Q2 -- No --> Q3{"Q3 · p ≤ L2 ?"}
+    Q3 -- Sí --> N4["4 · t = 9000"]
+    Q3 -- No --> N5["5 · t = 9000 + 800·(p−L2)"]
+    N3 --> Q4{"Q4 · z == urbana ?"}
+    N4 --> Q4
+    N5 --> Q4
+    Q4 -- Sí --> N6["6 · t = t  (no-op)"]
+    Q4 -- No --> Q5{"Q5 · z == rural ?"}
+    Q5 -- Sí --> N7["7 · t += t·RR"]
+    Q5 -- No --> Q6{"Q6 · z == nacional ?"}
+    Q6 -- Sí --> N8["8 · t += t·RN"]
+    Q6 -- No --> Q7["zona no reconocida: sigue"]
+    N6 --> Q7{"Q7 · d > 6 ?"}
+    N7 --> Q7
+    N8 --> Q7
+    Q7 -- Sí --> N9["9 · t += FINDE"]
+    N9 --> Q8
+    Q7 -- No --> Q8{"Q8 · c == frecuente ?"}
+    Q8 -- Sí --> N10["10 · t −= t·0,05"]
+    N10 --> Q9
+    Q8 -- No --> Q9{"Q9 · c == vip ?"}
+    Q9 -- Sí --> N11["11 · t −= t·V"]
+    N11 --> Q10
+    Q9 -- No --> Q10{"Q10 · cup ≠ None ?"}
+    Q10 -- No --> Q12{"Q12 · t < 5000 ?"}
+    Q10 -- Sí --> Q11{"Q11 · cup == ENVIO10 ?"}
+    Q11 -- Sí --> N12["12 · t −= t·0,10"]
+    Q11 -- No --> Q12
+    N12 --> Q12
+    Q12 -- Sí --> N13["13 · t = 5000"]
+    N13 --> Q13
+    Q12 -- No --> Q13{"Q13 · flag ?"}
+    Q13 -- Sí --> N14["14 · print"]
+    N14 --> N15["15 · return"]
+    Q13 -- No --> N15
+    N15 --> X
+</div>
+</body>
+</html>
