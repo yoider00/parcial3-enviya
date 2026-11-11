@@ -6,3 +6,10 @@ htmlcov/
 .venv/
 
 mermaid.min.js
+
+# artefactos de trabajo (fuera del repo, se conservan localmente)
+generar_*.py
+Informe_Parcial3.html
+diagrama_*.html
+**/*_raw.png
+**/raw_*.png
