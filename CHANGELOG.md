@@ -5,6 +5,19 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.1.0] - 2026-11-11
+
+### Added
+
+- **CHG-001:** nueva zona **insular (San Andrés)** con recargo del **70 %**
+  (`ZonaInsular`, `RECARGO_INSULAR = 0.70`).
+- Los envíos insulares **no aceptan cupón**: el cupón se ignora en esa zona
+  (atributo `acepta_cupon = False` en la estrategia).
+- Casos de prueba CN-27, CN-28 y CN-29, escritos **antes** de la implementación (TDD).
+
+Implementado en la rama `cambio/zona-insular` e integrado a master con merge.
+Versión **minor**: funcionalidad nueva sin cambio de interfaz.
+
 ## [2.0.0] - 2026-11-11
 
 ### Changed

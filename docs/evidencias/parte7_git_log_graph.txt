@@ -1,4 +1,11 @@
-﻿*   2869bd7 merge test/suite: suite adaptada a la interfaz v2.0.0
+﻿*   d578155 merge cambio/zona-insular: CHG-001 zona insular San Andres
+|\  
+| * 8d076d4 CHG-001: ZonaInsular 70% sin cupon via Estrategia (TDD verde 30/30)
+| * c9c06a6 CHG-001: pruebas primero (TDD rojo) - zona insular +70% sin cupon
+|/  
+* 7d75f0c Parte 7: etiquetas v1.0.1 y v2.0.0, ramas integradas, versionado justificado y CHANGELOG
+* 3227956 Parte 6: 7 code smells, clasificacion de mantenimiento, refactor Estrategia, regresion 27/27
+*   2869bd7 merge test/suite: suite adaptada a la interfaz v2.0.0
 |\  
 | * e7a3c50 test/suite: CW-01 actualizado al contrato v2.0.0 sin flag
 |/  

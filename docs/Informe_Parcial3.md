@@ -655,6 +655,32 @@ Los commits están distribuidos a lo largo de la jornada (ver el histórico en G
 
 ## Parte 8 · Solicitud de cambio (0,4 pts)
 
-**Mi solicitud: CAMBIO = 0 → Nueva zona insular (San Andrés), recargo 70 %, sin cupón.**
+**Solicitud asignada: CAMBIO = (3 + 6) mod 3 = 0 → Nueva zona insular (San Andrés) con un recargo del 70 %. Los envíos insulares no aceptan cupón.**
 
-*(Análisis de impacto con la matriz de trazabilidad, tipo de mantenimiento, rama propia con pruebas primero, nueva versión y CHANGELOG)*
+### 8.1 Análisis de impacto (con la matriz de trazabilidad)
+
+| Elemento | Impacto del cambio CHG-001 |
+|---|---|
+| **Requisitos** | R4 se extiende (nueva zona con +70 %); R6 recibe una restricción (los envíos insulares no aceptan cupón); R2 cambia implícitamente: "insular" deja de ser zona inválida y pasa a ser una nueva partición válida (P20) |
+| **Historias** | HU2 (recargo por zona) se extiende con la zona insular; HU3 (cupón) gana una condición de aceptación: "Dado un envío insular con cupón, cuando calculo el costo, entonces el cupón se ignora" |
+| **Casos de prueba** | Nuevos: CN-27 (insular +70 %), CN-28 (insular no acepta cupón), CN-29 (insular + vip + sábado). Ninguno de los 27 casos anteriores cambia: ninguno usaba la zona insular |
+| **Código** | Clase nueva `ZonaInsular` + registro en `ESTRATEGIA_ZONA` + constante `RECARGO_INSULAR` + atributo `acepta_cupon` en la jerarquía + un filtro de 2 líneas en `calc`. **No se toca** `_tarifa_base`, `_descuento_maximo`, `_aplicar_finde`, `_con_minimo_y_redondeo`: el patrón Estrategia de la Parte 6 aisló el impacto tal como se planeó |
+| **Trazabilidad** | R4/R6 → HU2/HU3 → CN-27, CN-28, CN-29 (fila nueva en la matriz) |
+
+Decisión de diseño documentada: "no acepta cupón" se implementa **ignorando el cupón** (coherente con mi regla F par: los cupones no válidos se ignoran) y no lanzando error; la alternativa (error) se deja registrada por si el negocio prefiere avisar al cajero.
+
+### 8.2 Clasificación del tipo de mantenimiento
+
+**Perfectivo** — el cambio agrega funcionalidad nueva a petición del negocio (nueva ruta comercial a San Andrés), no repara defectos (correctivo) ni se adapta a un cambio de plataforma (adaptativo). Se apoya en trabajo preventivo previo (el Estrategia) para que su costo sea bajo.
+
+### 8.3 Implementación con pruebas primero (TDD)
+
+1. **Rojo** (rama `cambio/zona-insular`, commit `c9c06a6`): se escribieron CN-27/28/29 primero y se ejecutaron contra v2.0.0 → **3 failed, 27 passed** (la zona insular ni siquiera existía: `ValueError "zona invalida"`). Evidencia: `docs/evidencias/parte8_TDD_pruebas_fallando.txt`.
+2. **Verde** (commit `8d076d4`): implementación con Estrategia (`ZonaInsular` con `RECARGO_INSULAR = 0.70` y `acepta_cupon = False`; filtro de cupón en `calc`) → **30/30 pasan**. Evidencia: `docs/evidencias/parte8_TDD_verde.txt`.
+3. Integración a master con merge, **sin romper la regresión** (las 27 pruebas anteriores siguen pasando sin modificación).
+
+### 8.4 Nueva versión
+
+**v2.1.0** (etiqueta publicada) — **minor**: funcionalidad nueva (`"insular"` ahora es zona válida y el filtro de cupón cambia el resultado solo en ese caso) **sin romper** la interfaz ni el comportamiento existente de `calc(...)`; las 27 pruebas previas pasan sin cambios. Semver: feature compatible → minor.
+
+---
