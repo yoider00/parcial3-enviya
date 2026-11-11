@@ -33,7 +33,7 @@ def calc(p, z, c, d, cup=None, flag=False):
     elif z == "nacional":
         t = t + t * CONFIG["RECARGO_NACIONAL"]
     # fin de semana
-    if d > 6:
+    if d > 5:
         t = t + CONFIG["RECARGO_FINDE"]
     if c == "frecuente":
         t = t - t * 0.05
