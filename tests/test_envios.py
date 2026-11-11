@@ -106,10 +106,10 @@ def test_CN_25_redondeo_50_hacia_arriba():
     # 9000*1.25 = 11250 -> 11300 (R8); el heredado trunca a 11200
     assert calc(10, "rural", "normal", 3) == 11300
 
-# ---------------- Caja blanca: camino Q13-Si (flag) ----------------
+# ---------------- Caja blanca: cambio de interfaz (flag eliminado) ----------------
 
-def test_CW_01_flag_true_imprime_y_devuelve(capsys):
-    resultado = calc(2, "urbana", "normal", 3, flag=True)
-    capturado = capsys.readouterr().out
-    assert resultado == 6000
-    assert "6000" in capturado
+def test_CW_01_flag_eliminado_de_la_interfaz():
+    # v2.0.0: el parametro flag fue eliminado del contrato de calc.
+    # Enviarlo ahora debe fallar rapido (TypeError), no ignorarse en silencio.
+    with pytest.raises(TypeError):
+        calc(2, "urbana", "normal", 3, flag=True)
