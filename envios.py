@@ -14,7 +14,7 @@ CONFIG = {
 
 
 def calc(p, z, c, d, cup=None, flag=False):
-    if p <= 0 or p > 50:
+    if p <= 0 or p > 45:
         raise ValueError("peso invalido")
     if p <= CONFIG["L1"]:
         t = 6000
