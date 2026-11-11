@@ -1,6 +1,6 @@
 # Parcial 3 - Ingeniería de Software I - EnvíaYa
 
-**Estudiante:** (tu nombre aquí)
+**Estudiante:** Yoider Brito
 **Código estudiantil:** 0182320076
 **Grupo B1 · VI semestre · 2026-2 · Tercer corte**
 
