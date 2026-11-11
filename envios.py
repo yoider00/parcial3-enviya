@@ -21,6 +21,7 @@ CONFIG = {
     "L2": 10,                 # 10 + C = 10 + 0
     "RECARGO_RURAL": 0.25,    # 10 + 5*(E mod 4) = 25 %
     "RECARGO_NACIONAL": 0.40, # 40 + 5*(F mod 3) = 40 %
+    "RECARGO_INSULAR": 0.70,  # CHG-001: San Andres, 70 %
     "DESC_VIP": 0.10,         # 10 + 5*(A mod 3) = 10 %
     "RECARGO_FINDE": 2000,    # 2000 + 500*(C mod 4) = $2.000
 }
@@ -29,6 +30,8 @@ CONFIG = {
 # ---- Patron Estrategia: recargo por zona (antes if/elif encadenados) ----
 
 class RecargoZona(ABC):
+    acepta_cupon = True  # CHG-001: una zona puede rechazar cupones
+
     @abstractmethod
     def aplicar(self, costo):
         """Devuelve el costo con el recargo de la zona."""
@@ -49,10 +52,18 @@ class ZonaNacional(RecargoZona):
         return costo + costo * CONFIG["RECARGO_NACIONAL"]
 
 
+class ZonaInsular(RecargoZona):
+    acepta_cupon = False  # CHG-001: los envios insulares no aceptan cupon
+
+    def aplicar(self, costo):
+        return costo + costo * CONFIG["RECARGO_INSULAR"]
+
+
 ESTRATEGIA_ZONA = {
     "urbana": ZonaUrbana(),
     "rural": ZonaRural(),
     "nacional": ZonaNacional(),
+    "insular": ZonaInsular(),
 }
 
 
@@ -102,10 +113,13 @@ def _con_minimo_y_redondeo(costo):
 
 
 def calc(p, z, c, d, cup=None):
-    """Calcula el costo de un envio segun la especificacion R1-R8."""
+    """Calcula el costo de un envio segun la especificacion R1-R8 y CHG-001."""
     _validar_entradas(p, z, d)
     costo = _tarifa_base(p)
-    costo = ESTRATEGIA_ZONA[z].aplicar(costo)
+    estrategia = ESTRATEGIA_ZONA[z]
+    if not estrategia.acepta_cupon:  # CHG-001: zona insular no acepta cupon
+        cup = None
+    costo = estrategia.aplicar(costo)
     costo = costo * (1 - _descuento_maximo(c, cup))
     costo = _aplicar_finde(costo, d)
     return _con_minimo_y_redondeo(costo)
