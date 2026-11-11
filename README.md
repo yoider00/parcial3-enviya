@@ -2,7 +2,7 @@
 
 Mantenimiento y pruebas de la función `calc` de EnvíaYa (Riohacha).
 
-- Estudiante: (tu nombre) · Código: 0182320076
+- Estudiante: Yoider Brito· Código: 0182320076
 - Parámetros: PMAX=45, L1=4, L2=10, RR=25 %, RN=40 %, V=10 %, S=$2.000, CAMBIO=0
 
 ## Cómo ejecutar las pruebas
