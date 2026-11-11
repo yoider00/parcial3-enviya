@@ -265,6 +265,7 @@ En **todas** las reglas: el recargo de finde se aplica después del descuento (E
 | CN-14 | R2 | 2 | urbana | normal | 8 | — | Error | Partición P13 (día inválido) |
 | CN-15 | R5 | 2 | urbana | normal | 6 | — | $8.000 | Partición P11 (sábado) |
 | CN-16 | R5 | 2 | urbana | normal | 7 | — | $8.000 | Partición P12 (domingo) |
+| CN-26 | R5, R6 | 2 | urbana | vip | 7 | — | $7.400 | Tabla decisión D10 (finde después de descuento, E impar) |
 | CN-17 | R6 | 2 | urbana | frecuente | 3 | — | $5.700 | Partición P15 (5 %) |
 | CN-18 | R6 | 2 | urbana | vip | 3 | — | $5.400 | Partición P16 (10 %) |
 | CN-19 | R6 | 2 | urbana | normal | 3 | ENVIO10 | $5.400 | Partición P18 (cupón 10 %) |
@@ -416,11 +417,94 @@ Conclusiones: (1) la cobertura de ramas exige los dos casos "sin efecto visible"
 
 ## Parte 5 · Automatización, ejecución y defectos (0,8 pts)
 
-*(Capturas pytest, cobertura pytest-cov, reportes de defectos, métricas)*
+### 5.1 Automatización y ejecución contra el código heredado
 
-### Defectos encontrados contra el código heredado
+Los 25 casos de la matriz (CN-01 a CN-26) más el caso de caja blanca CW-01
+quedaron automatizados en `tests/test_envios.py` con pytest (27 pruebas).
+Comando de ejecución y evidencias:
 
-*(llenar después de ejecutar las pruebas; pistas a verificar: límite 50 vs PMAX 45, redondeo por truncamiento, sábado sin recargo, finde antes de descuentos, descuentos encadenados vs "solo el mayor", zona/día inválidos sin error)*
+```bash
+python -m pytest tests/ -v
+```
+
+- Evidencia 1 (pruebas fallando contra el heredado): `docs/evidencias/parte5_pytest_contra_heredado.txt`
+- **Resultado contra el heredado v1.0.0: 11 fallan, 16 pasan (59,3 % de casos que pasan).**
+
+Casos que fallan: CN-07, CN-12, CN-13, CN-14, CN-15, CN-20, CN-21, CN-22, CN-24, CN-25, CN-26.
+Casos que pasan pese a los defectos: el comportamiento del heredado coincide con la
+especificación en los caminos simples (tramos, urbana/rural/nacional, domingo sin
+descuentos, cupón inexistente ignorado — este último porque mi regla F par coincide
+con lo que el heredado ya hace).
+
+### 5.2 Cobertura medida con pytest-cov
+
+```bash
+python -m pytest tests/ --cov=envios --cov-branch --cov-report=term-missing
+```
+
+- Evidencia 2: `docs/evidencias/parte5_cobertura_heredado.txt` (+ captura de pantalla adjunta al PDF del informe).
+- **Resultado: 100 % de sentencias (29/29) y 100 % de ramas (26/26).**
+
+Análisis: la suite logra cobertura total y aun así 11 de 27 casos revelan defectos.
+Esto demuestra que **la cobertura es condición necesaria pero no suficiente**:
+mide qué código se ejecutó, no si hace lo que la especificación exige. La calidad
+del diseño de casos (particiones, límites y tabla de decisión) es lo que expone
+los defectos.
+
+### 5.3 Reporte de defectos (7 defectos, agrupados por causa raíz)
+
+**DEF-01 · El peso máximo aceptado es 50 kg en lugar de PMAX = 45 kg**
+- Requisito incumplido: R1.
+- Pasos: ejecutar `calc(45.01, "urbana", "normal", 3)`.
+- Esperado: error "peso inválido" (45,01 > 45).
+- Obtenido: no lanza error; devuelve $37.000.
+- Severidad: **Alta** — acepta envíos fuera del límite de negocio (costos de logística no previstos). Prioridad: **P2** — el rango afectado es estrecho (45–50 kg).
+
+**DEF-02 · No valida la zona: una zona inexistente se procesa en silencio**
+- Requisito: R2. Pasos: `calc(2, "lunar", "normal", 3)`.
+- Esperado: error. Obtenido: $6.000 sin error (carga un envío con destino inválido).
+- Severidad: **Alta** — datos inválidos entran al sistema sin rastro. Prioridad: **P1**.
+
+**DEF-03 · No valida el día: acepta valores fuera de 1–7**
+- Requisito: R2. Pasos: `calc(2, "urbana", "normal", 0)` y `calc(2, "urbana", "normal", 8)`.
+- Esperado: error. Obtenido: $6.000 sin error.
+- Severidad: **Alta** — ídem, corrompe la semántica del calendario. Prioridad: **P1**.
+
+**DEF-04 · El sábado no recibe el recargo de fin de semana (condición `d > 6`)**
+- Requisito: R5 (mi regla: sábado 6 y domingo 7). Pasos: `calc(2, "urbana", "normal", 6)`.
+- Esperado: $8.000. Obtenido: $6.000 (cobra $2.000 de menos cada sábado).
+- Severidad: **Alta** — pérdida de ingreso sistemática en cada envío de sábado. Prioridad: **P1**.
+
+**DEF-05 · El recargo de fin de semana se suma antes de los descuentos (mi regla E exige después)**
+- Requisito: R5/E. Pasos: `calc(2, "urbana", "vip", 7)`.
+- Esperado: 6.000 × 0,90 + 2.000 = $7.400. Obtenido: (6.000 + 2.000) × 0,90 = $7.200.
+- Severidad: **Media** — diferencia de $200 solo en envíos de fin de semana con descuento. Prioridad: **P2**.
+
+**DEF-06 · Los descuentos se encadenan en lugar de aplicar solo el mayor (mi regla B)**
+- Requisito: R6/B. Pasos: `calc(2, "urbana", "vip", 3, cup="ENVIO10")` y `calc(2, "urbana", "frecuente", 3, cup="ENVIO10")`.
+- Esperado: $5.400 en ambos (solo el mayor, 10 %). Obtenido: $5.000 y $5.100 (0,95 × 0,90 encadenados, con el mínimo de $5.000 activado en el primer caso).
+- Severidad: **Alta** — sobrecobra a los clientes más valiosos (riesgo comercial directo). Prioridad: **P1**.
+
+**DEF-07 · El redondeo trunca en vez de ir al múltiplo de $100 más cercano ($50 hacia arriba)**
+- Requisito: R8. Pasos: `calc(10, "rural", "normal", 3)` → 9.000 × 1,25 = 11.250.
+- Esperado: $11.300 (50 hacia arriba). Obtenido: $11.200 (trunca con `int(t/100)*100`).
+- Severidad: **Media** — diferencia de hasta $100 por envío, siempre en contra del cliente. Prioridad: **P3** — bajo impacto individual, corrección trivial junto al resto.
+
+> Nota: la inclusión del límite L1 (`p <= L1`) **no es defecto para mi especificación**
+> (D par) — es un ejemplo de que el mismo código heredado tiene defectos distintos
+> según la especificación de cada estudiante.
+
+### 5.4 Métricas de la fase de pruebas
+
+| Métrica | Valor |
+|---|---|
+| Casos ejecutados | 27 (25 de caja negra + 1 de caja blanca + CW-01) |
+| % de casos que pasan contra el heredado | 16/27 = **59,3 %** |
+| Defectos por severidad | Alta: **5** (DEF-01, 02, 03, 04, 06) · Media: **2** (DEF-05, 07) |
+| Defectos por prioridad | P1: 4 · P2: 2 · P3: 1 |
+| Densidad de defectos | 7 defectos / 37 líneas de código = **18,9 defectos por 100 líneas** |
+| Cobertura de sentencias | **100 %** (29/29) |
+| Cobertura de ramas | **100 %** (26/26) |
 
 ---
 

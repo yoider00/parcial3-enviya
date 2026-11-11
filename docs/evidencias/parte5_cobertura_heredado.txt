@@ -1,0 +1,115 @@
+﻿......F....FFFF.F...FFF.FF.                                              [100%]
+================================== FAILURES ===================================
+______________________ test_CN_07_PMAX_mas_epsilon_error ______________________
+
+    def test_CN_07_PMAX_mas_epsilon_error():
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_envios.py:34: Failed
+_______________________ test_CN_12_zona_invalida_error ________________________
+
+    def test_CN_12_zona_invalida_error():
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_envios.py:53: Failed
+__________________________ test_CN_13_dia_cero_error __________________________
+
+    def test_CN_13_dia_cero_error():
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_envios.py:59: Failed
+__________________________ test_CN_14_dia_ocho_error __________________________
+
+    def test_CN_14_dia_ocho_error():
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_envios.py:63: Failed
+_________________________ test_CN_15_sabado_con_finde _________________________
+
+    def test_CN_15_sabado_con_finde():
+>       assert calc(2, "urbana", "normal", 6) == 8000
+E       AssertionError: assert 6000 == 8000
+E        +  where 6000 = calc(2, 'urbana', 'normal', 6)
+
+tests\test_envios.py:67: AssertionError
+____________________ test_CN_26_domingo_vip_finde_despues _____________________
+
+    def test_CN_26_domingo_vip_finde_despues():
+        # regla E impar: finde DESPUES del descuento -> 6000*0.90 + 2000 = 7400
+>       assert calc(2, "urbana", "vip", 7) == 7400
+E       AssertionError: assert 7200 == 7400
+E        +  where 7200 = calc(2, 'urbana', 'vip', 7)
+
+tests\test_envios.py:74: AssertionError
+___________________ test_CN_20_vip_mas_cupon_solo_el_mayor ____________________
+
+    def test_CN_20_vip_mas_cupon_solo_el_mayor():
+        # B par: solo el mayor -> 5400; el heredado encadena y activa el minimo
+>       assert calc(2, "urbana", "vip", 3, cup="ENVIO10") == 5400
+E       AssertionError: assert 5000 == 5400
+E        +  where 5000 = calc(2, 'urbana', 'vip', 3, cup='ENVIO10')
+
+tests\test_envios.py:89: AssertionError
+___________________ test_CN_21_frecuente_mas_cupon_el_mayor ___________________
+
+    def test_CN_21_frecuente_mas_cupon_el_mayor():
+>       assert calc(2, "urbana", "frecuente", 3, cup="ENVIO10") == 5400
+E       AssertionError: assert 5100 == 5400
+E        +  where 5100 = calc(2, 'urbana', 'frecuente', 3, cup='ENVIO10')
+
+tests\test_envios.py:92: AssertionError
+_________________________ test_CN_22_sabado_vip_cupon _________________________
+
+    def test_CN_22_sabado_vip_cupon():
+>       assert calc(2, "urbana", "vip", 6, cup="ENVIO10") == 7400
+E       AssertionError: assert 5000 == 7400
+E        +  where 5000 = calc(2, 'urbana', 'vip', 6, cup='ENVIO10')
+
+tests\test_envios.py:95: AssertionError
+_____________________ test_CN_24_caso_integracion_ejemplo _____________________
+
+    def test_CN_24_caso_integracion_ejemplo():
+>       assert calc(4, "rural", "vip", 6, cup="ENVIO10") == 8800
+E       AssertionError: assert 6000 == 8800
+E        +  where 6000 = calc(4, 'rural', 'vip', 6, cup='ENVIO10')
+
+tests\test_envios.py:103: AssertionError
+_____________________ test_CN_25_redondeo_50_hacia_arriba _____________________
+
+    def test_CN_25_redondeo_50_hacia_arriba():
+        # 9000*1.25 = 11250 -> 11300 (R8); el heredado trunca a 11200
+>       assert calc(10, "rural", "normal", 3) == 11300
+E       AssertionError: assert 11200 == 11300
+E        +  where 11200 = calc(10, 'rural', 'normal', 3)
+
+tests\test_envios.py:107: AssertionError
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.14.8-final-0 _______________
+
+Name        Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------
+envios.py      29      0     26      0   100%
+-------------------------------------------------------
+TOTAL          29      0     26      0   100%
+=========================== short test summary info ===========================
+FAILED tests/test_envios.py::test_CN_07_PMAX_mas_epsilon_error - Failed: DID ...
+FAILED tests/test_envios.py::test_CN_12_zona_invalida_error - Failed: DID NOT...
+FAILED tests/test_envios.py::test_CN_13_dia_cero_error - Failed: DID NOT RAIS...
+FAILED tests/test_envios.py::test_CN_14_dia_ocho_error - Failed: DID NOT RAIS...
+FAILED tests/test_envios.py::test_CN_15_sabado_con_finde - AssertionError: as...
+FAILED tests/test_envios.py::test_CN_26_domingo_vip_finde_despues - Assertion...
+FAILED tests/test_envios.py::test_CN_20_vip_mas_cupon_solo_el_mayor - Asserti...
+FAILED tests/test_envios.py::test_CN_21_frecuente_mas_cupon_el_mayor - Assert...
+FAILED tests/test_envios.py::test_CN_22_sabado_vip_cupon - AssertionError: as...
+FAILED tests/test_envios.py::test_CN_24_caso_integracion_ejemplo - AssertionE...
+FAILED tests/test_envios.py::test_CN_25_redondeo_50_hacia_arriba - AssertionE...
+11 failed, 16 passed in 0.15s
+
