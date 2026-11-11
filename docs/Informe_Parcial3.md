@@ -163,7 +163,150 @@ verificará con casos de prueba de la matriz de la Parte 3.
 
 ## Parte 3 · Caja negra (0,9 pts)
 
-*(Particiones de equivalencia, valores límite en 0/L1/L2/PMAX, tabla de decisión cliente×cupón×finde, matriz ≥20 casos, cálculo paso a paso de 5 casos)*
+### 3.1 Particiones de equivalencia
+
+**Entrada: peso (kg, admite decimales)**
+
+| # | Partición | Rango | Válida | Resultado esperado |
+|---|---|---|---|---|
+| P1 | Peso no válido | p ≤ 0 | No | Error "peso inválido" (R1) |
+| P2 | Tramo 1 | 0 < p ≤ 4 | Sí | $6.000 (R3, L1 incluido) |
+| P3 | Tramo 2 | 4 < p ≤ 10 | Sí | $9.000 (R3) |
+| P4 | Tramo proporcional | 10 < p ≤ 45 | Sí | 9.000 + 800×(p−10) (R3) |
+| P5 | Peso no válido (alto) | p > 45 | No | Error "peso inválido" (R1) |
+
+**Entrada: zona**
+
+| # | Partición | Valores | Válida |
+|---|---|---|---|
+| P6 | Urbana | "urbana" | Sí — sin recargo (R4) |
+| P7 | Rural | "rural" | Sí — +25 % (R4) |
+| P8 | Nacional | "nacional" | Sí — +40 % (R4) |
+| P9 | Cualquier otra | "lunar", "", etc. | No — error (R2) |
+
+**Entrada: día**
+
+| # | Partición | Valores | Válida |
+|---|---|---|---|
+| P10 | Entre semana | 1–5 | Sí — sin recargo de finde |
+| P11 | Sábado | 6 | Sí — +$2.000 después de descuentos (R5, E impar) |
+| P12 | Domingo | 7 | Sí — +$2.000 después de descuentos (R5) |
+| P13 | Fuera de rango | 0, 8, negativos | No — error (R2) |
+
+**Entrada: cliente**
+
+| # | Partición | Valores | Válida |
+|---|---|---|---|
+| P14 | Normal | "normal" | Sí — sin descuento |
+| P15 | Frecuente | "frecuente" | Sí — 5 % (R6) |
+| P16 | VIP | "vip" | Sí — 10 % (R6) |
+
+**Entrada: cupón**
+
+| # | Partición | Valores | Válida |
+|---|---|---|---|
+| P17 | Sin cupón | None | Sí |
+| P18 | ENVIO10 | "ENVIO10" | Sí — 10 % (R6) |
+| P19 | Cupón inexistente | "BIENVENIDA", etc. | Sí (input aceptado) — **se ignora** (R7, F par) |
+
+> **Nota de análisis:** la especificación (R2) solo exige error para zona y día inválidos; no define el comportamiento con un cliente no reconocido. Se documenta esta omisión: con cliente desconocido el sistema no aplica descuento (se asiste como "normal"), y se deja registrado como posible mejora (solicitud de cambio futura).
+
+### 3.2 Valores límite de peso
+
+Mi L1 = 4 con regla D **par → límite INCLUIDO** (peso ≤ 4 va al tramo 1):
+
+| Borde | Valor límite | Justo dentro | Justo fuera | R3 |
+|---|---|---|---|---|
+| Inferior | 0 | 0,1 → $6.000 | 0 → error | R1 |
+| L1 | 4 (incluido) | 4 → $6.000 | 4,01 → $9.000 | R3 |
+| L2 | 10 (incluido) | 10 → $9.000 | 10,01 → 9.000+800×0,01=$9.008→$9.000 (R8) | R3 |
+| PMAX | 45 (incluido) | 45 → 9.000+800×35=$37.000 | 45,01 → error | R1, R3 |
+
+### 3.3 Tabla de decisión · cliente × cupón × fin de semana
+
+Reglas mías: **B par** → solo el mayor descuento; **E impar** → finde se suma DESPUÉS de descuentos; **F par** → cupón inexistente se ignora.
+
+Por F par, "cupón inexistente" es equivalente a "sin cupón" (misma acción), lo que reduce la tabla a 12 reglas:
+
+| # | Cliente | Cupón | Finde | Descuento aplicado | Recargo finde | Acción |
+|---|---|---|---|---|---|---|
+| D1 | normal | ninguno | no | — | — | base |
+| D2 | normal | ninguno | sí | — | +$2.000 al final | base + finde |
+| D3 | normal | ENVIO10 | no | 10 % | — | base × 0,90 |
+| D4 | normal | ENVIO10 | sí | 10 % | +$2.000 al final | (base × 0,90) + 2.000 |
+| D5 | frecuente | ninguno | no | 5 % | — | base × 0,95 |
+| D6 | frecuente | ninguno | sí | 5 % | +$2.000 al final | (base × 0,95) + 2.000 |
+| D7 | frecuente | ENVIO10 | no | **10 % (el mayor de 5 %/10 %)** | — | base × 0,90 |
+| D8 | frecuente | ENVIO10 | sí | 10 % | +$2.000 al final | (base × 0,90) + 2.000 |
+| D9 | vip | ninguno | no | 10 % | — | base × 0,90 |
+| D10 | vip | ninguno | sí | 10 % | +$2.000 al final | (base × 0,90) + 2.000 |
+| D11 | vip | ENVIO10 | no | 10 % (empate: mayor) | — | base × 0,90 |
+| D12 | vip | ENVIO10 | sí | 10 % | +$2.000 al final | (base × 0,90) + 2.000 |
+
+En **todas** las reglas: el recargo de finde se aplica después del descuento (E impar) y antes del mínimo/redondeo (R8).
+
+### 3.4 Matriz de casos de prueba (24 casos)
+
+| ID | Requisito | Peso | Zona | Cliente | Día | Cupón | Esperado | Técnica |
+|---|---|---|---|---|---|---|---|---|
+| CN-01 | R3 | 2 | urbana | normal | 3 | — | $6.000 | Partición P2 (interior) |
+| CN-02 | R3 | 4 | urbana | normal | 3 | — | $6.000 | Valor límite L1 (incluido, D par) |
+| CN-03 | R3 | 4,01 | urbana | normal | 3 | — | $9.000 | Valor límite L1+ε |
+| CN-04 | R3 | 10 | urbana | normal | 3 | — | $9.000 | Valor límite L2 (incluido) |
+| CN-05 | R3, R8 | 10,5 | urbana | normal | 3 | — | $9.400 | Partición P4 (interior, proporcional) |
+| CN-06 | R1, R3 | 45 | urbana | normal | 3 | — | $37.000 | Valor límite PMAX (incluido) |
+| CN-07 | R1 | 45,01 | urbana | normal | 3 | — | Error | Valor límite PMAX+ε |
+| CN-08 | R1 | 0 | urbana | normal | 3 | — | Error | Valor límite inferior |
+| CN-09 | R1 | 0,1 | urbana | normal | 3 | — | $6.000 | Valor límite 0+ε |
+| CN-10 | R4 | 2 | rural | normal | 3 | — | $7.500 | Partición P7 (rural +25 %) |
+| CN-11 | R4 | 2 | nacional | normal | 3 | — | $8.400 | Partición P8 (nacional +40 %) |
+| CN-12 | R2 | 2 | lunar | normal | 3 | — | Error | Partición P9 (zona inválida) |
+| CN-13 | R2 | 2 | urbana | normal | 0 | — | Error | Partición P13 (día inválido) |
+| CN-14 | R2 | 2 | urbana | normal | 8 | — | Error | Partición P13 (día inválido) |
+| CN-15 | R5 | 2 | urbana | normal | 6 | — | $8.000 | Partición P11 (sábado) |
+| CN-16 | R5 | 2 | urbana | normal | 7 | — | $8.000 | Partición P12 (domingo) |
+| CN-17 | R6 | 2 | urbana | frecuente | 3 | — | $5.700 | Partición P15 (5 %) |
+| CN-18 | R6 | 2 | urbana | vip | 3 | — | $5.400 | Partición P16 (10 %) |
+| CN-19 | R6 | 2 | urbana | normal | 3 | ENVIO10 | $5.400 | Partición P18 (cupón 10 %) |
+| CN-20 | R6 | 2 | urbana | vip | 3 | ENVIO10 | $5.400 | Tabla decisión D11 (solo el mayor, B par) |
+| CN-21 | R6 | 2 | urbana | frecuente | 3 | ENVIO10 | $5.400 | Tabla decisión D7 (mayor de 5 %/10 %) |
+| CN-22 | R5, R6 | 2 | urbana | vip | 6 | ENVIO10 | $7.400 | Tabla decisión D12 (finde después, E impar) |
+| CN-23 | R7 | 2 | urbana | normal | 3 | BIENVENIDA | $6.000 | Partición P19 (cupón ignorado, F par) |
+| CN-24 | R3,R4,R5,R6,R8 | 4 | rural | vip | 6 | ENVIO10 | $8.800 | Integración de todas las reglas (caso ejemplo) |
+
+Cobertura: todas las particiones P1–P19 y todas las reglas D1–D12 de la tabla de decisión tienen al menos un caso; los bordes 0/L1/L2/PMAX se prueban por dentro y por fuera.
+
+### 3.5 Cálculo paso a paso de 5 casos (a mano, con mis parámetros)
+
+**CN-24** · peso=4, rural, vip, sábado (6), cupón=ENVIO10
+1. Tramo: 4 ≤ 4 (D par, incluido) → tramo 1 = $6.000.
+2. Zona rural +25 % → 6.000 × 1,25 = $7.500.
+3. Descuentos (B par, solo el mayor): VIP 10 % vs cupón 10 % → 10 % → 7.500 × 0,90 = $6.750.
+4. Fin de semana DESPUÉS de descuentos (E impar) → 6.750 + 2.000 = $8.750.
+5. ≥ $5.000; redondeo a $100 con 50 hacia arriba → **$8.800**.
+
+**CN-05** · peso=10,5, urbana, normal, miércoles
+1. 10,5 > 4 → tramo 2 no: supera L2 → 9.000 + 800 × (10,5 − 10) = 9.000 + 400 = $9.400.
+2. Urbana sin recargo; no finde; sin descuentos → $9.400. Redondeo → **$9.400**.
+
+**CN-06** · peso=45 (justo en PMAX), urbana, normal, miércoles
+1. 45 ≤ 45 → válido (R1).
+2. 45 > 10 → 9.000 + 800 × 35 = 9.000 + 28.000 = $37.000. Redondeo → **$37.000**.
+
+**CN-25** · peso=10, rural, normal, miércoles (caso del redondeo R8)
+1. 10 ≤ 10 → tramo 2 = $9.000.
+2. Rural +25 % → 9.000 × 1,25 = $11.250.
+3. Sin descuentos ni finde. Redondeo: 11.250 termina en 50 → hacia arriba → **$11.300** (el código heredado trunca a $11.200 → defecto).
+
+**CN-22** · peso=2, urbana, vip, sábado, cupón=ENVIO10 (orden del finde, E impar)
+1. Tramo 1 = $6.000. 2. Urbana sin recargo.
+3. Solo el mayor (B par): 10 % → 6.000 × 0,90 = $5.400.
+4. Finde DESPUÉS: 5.400 + 2.000 = $7.400. Redondeo → **$7.400**.
+(El heredado no cobra finde el sábado y además aplicaría doble descuento → dos defectos en un solo caso.)
+
+### 3.6 Análisis adicional del mínimo (R8)
+
+Con mi especificación el mínimo de $5.000 nunca se alcanza: la base más pequeña es el tramo 1 ($6.000) y el descuento máximo es 10 % (B par) → mínimo posible $5.400. La regla R8 queda como salvaguarda defensiva; igualmente existe en el código y se mantiene en la refactorización.
 
 ---
 
