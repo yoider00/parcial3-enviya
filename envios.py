@@ -32,13 +32,17 @@ def calc(p, z, c, d, cup=None, flag=False):
         t = t + t * CONFIG["RECARGO_RURAL"]
     elif z == "nacional":
         t = t + t * CONFIG["RECARGO_NACIONAL"]
+    # regla B: solo se aplica el mayor descuento
+    descuento = 0
     if c == "frecuente":
-        t = t - t * 0.05
+        descuento = max(descuento, 0.05)
     if c == "vip":
-        t = t - t * CONFIG["DESC_VIP"]
+        descuento = max(descuento, CONFIG["DESC_VIP"])
     if cup != None:
         if cup == "ENVIO10":
-            t = t - t * 0.10
+            descuento = max(descuento, 0.10)
+    if descuento > 0:
+        t = t - t * descuento
     # fin de semana (regla E: despues de los descuentos)
     if d > 5:
         t = t + CONFIG["RECARGO_FINDE"]
