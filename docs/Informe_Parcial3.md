@@ -603,7 +603,53 @@ Conclusión: la refactorización no buscó menos líneas sino **complejidad repa
 
 ## Parte 7 · Gestión de configuración (0,5 pts)
 
-*(etiquetas, ramas fix/DEF-xx, refactor/estrategia, test/suite, versionado semántico justificado, CHANGELOG, git log --oneline --graph --all)*
+### 7.1 Etiquetas
+
+- **v1.0.0** → código heredado tal cual se recibió (commit inicial `b2556f4`).
+- **v1.0.1** → tras integrar las 7 correcciones de defectos (sin cambio de interfaz).
+- **v2.0.0** → tras la refactorización con eliminación del parámetro `flag`.
+
+### 7.2 Ramas e integración
+
+Creadas desde master y **integradas con merge --no-ff** (se conservan los merge commits en el grafo):
+
+- `fix/DEF-01` … `fix/DEF-07` — una rama por defecto reportado, con su corrección mínima.
+- `refactor/estrategia` — reestructuración completa (funciones, constantes, Estrategia, sin flag).
+- `test/suite` — adaptación de la suite al nuevo contrato (`CW-01` sin flag).
+
+### 7.3 Justificación del versionado semántico
+
+- **1.0.0 → 1.0.1:** solo se corrigieron defectos frente a la especificación; la interfaz y el comportamiento correcto esperado no cambian → **patch**.
+- **1.0.1 → 2.0.0:** se eliminó el parámetro `flag` de la firma pública `calc(...)`. Cualquier llamador que la usaba ahora recibe `TypeError`: **cambio rompente de interfaz → major**. El patrón Estrategia y las funciones extraídas son internos (no rompen nada por sí solos), pero la eliminación de `flag` basta para justificar el salto.
+
+### 7.4 CHANGELOG y notas de versión
+
+`CHANGELOG.md` en formato **Keep a Changelog** con las entradas `[1.0.0]`, `[1.0.1]` (sección *Fixed* con los 7 DEF) y `[2.0.0]` (sección *Changed* con el cambio rompente y el refactor).
+
+### 7.5 Salida de git log --oneline --graph --all
+
+Evidencia guardada en `docs/evidencias/parte7_git_log_graph.txt` (y captura adjunta al PDF). Fragmento:
+
+```text
+*   2869bd7 merge test/suite: suite adaptada a la interfaz v2.0.0
+|\
+| * e7a3c50 test/suite: CW-01 actualizado al contrato v2.0.0 sin flag
+|/
+*   b8f0253 merge refactor/estrategia: estructura nueva sin flag
+|\
+| * bbdcb80 refactor/estrategia: funciones, constantes, Estrategia, flag eliminado
+|/
+*   c64e5fb merge fix/DEF-07: redondeo correcto
+|\
+| * 1fe462b fix/DEF-07: redondeo 50 hacia arriba (R8)
+|/
+*   c8bd8e8 merge fix/DEF-06: descuento maximo unico
+... (continúa con DEF-05 a DEF-01 y las partes del informe)
+```
+
+### 7.6 Commits repartidos en el día
+
+Los commits están distribuidos a lo largo de la jornada (ver el histórico en GitHub): v1.0.0 → Parte 1 → Parte 2 → Parte 3 → Parte 4 → Parte 5 → 7 correcciones por rama → refactor → suite → informe, cada uno con marca de tiempo propia.
 
 ---
 
