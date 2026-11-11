@@ -113,3 +113,19 @@ def test_CW_01_flag_eliminado_de_la_interfaz():
     # Enviarlo ahora debe fallar rapido (TypeError), no ignorarse en silencio.
     with pytest.raises(TypeError):
         calc(2, "urbana", "normal", 3, flag=True)
+
+# ---------------- Solicitud de cambio 0: zona insular (CHG-001) ----------------
+# Nueva zona insular (San Andres) con recargo del 70 %.
+# Los envios insulares NO aceptan cupon (se ignora, coherente con F par).
+
+def test_CN_27_zona_insular_recargo_70():
+    # 6000 * 1.70 = 10200
+    assert calc(2, "insular", "normal", 3) == 10200
+
+def test_CN_28_insular_no_acepta_cupon():
+    # el cupon se ignora: 6000 * 1.70 = 10200 (NO 9180)
+    assert calc(2, "insular", "normal", 3, cup="ENVIO10") == 10200
+
+def test_CN_29_insular_vip_sabado():
+    # 9000*1.70 = 15300; vip 10% -> 13770; finde despues +2000 -> 15770; redondeo -> 15800
+    assert calc(10, "insular", "vip", 6) == 15800
