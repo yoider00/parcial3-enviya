@@ -1,0 +1,37 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.8, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\yoide\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\yoide\Parcial3-EnviaYa
+plugins: anyio-4.15.1, cov-7.1.0, django-4.14.0
+collecting ... collected 27 items
+
+tests/test_envios.py::test_CN_01_peso2_tramo1 PASSED                     [  3%]
+tests/test_envios.py::test_CN_02_L1_incluido PASSED                      [  7%]
+tests/test_envios.py::test_CN_03_L1_mas_epsilon PASSED                   [ 11%]
+tests/test_envios.py::test_CN_04_L2_incluido PASSED                      [ 14%]
+tests/test_envios.py::test_CN_05_proporcional_interior PASSED            [ 18%]
+tests/test_envios.py::test_CN_06_PMAX_incluido_45kg PASSED               [ 22%]
+tests/test_envios.py::test_CN_07_PMAX_mas_epsilon_error PASSED           [ 25%]
+tests/test_envios.py::test_CN_08_peso_cero_error PASSED                  [ 29%]
+tests/test_envios.py::test_CN_09_peso_0_1 PASSED                         [ 33%]
+tests/test_envios.py::test_CN_10_zona_rural_25 PASSED                    [ 37%]
+tests/test_envios.py::test_CN_11_zona_nacional_40 PASSED                 [ 40%]
+tests/test_envios.py::test_CN_12_zona_invalida_error PASSED              [ 44%]
+tests/test_envios.py::test_CN_13_dia_cero_error PASSED                   [ 48%]
+tests/test_envios.py::test_CN_14_dia_ocho_error PASSED                   [ 51%]
+tests/test_envios.py::test_CN_15_sabado_con_finde PASSED                 [ 55%]
+tests/test_envios.py::test_CN_16_domingo_con_finde PASSED                [ 59%]
+tests/test_envios.py::test_CN_26_domingo_vip_finde_despues PASSED        [ 62%]
+tests/test_envios.py::test_CN_17_cliente_frecuente_5 PASSED              [ 66%]
+tests/test_envios.py::test_CN_18_cliente_vip_10 PASSED                   [ 70%]
+tests/test_envios.py::test_CN_19_cupon_envio10 PASSED                    [ 74%]
+tests/test_envios.py::test_CN_20_vip_mas_cupon_solo_el_mayor PASSED      [ 77%]
+tests/test_envios.py::test_CN_21_frecuente_mas_cupon_el_mayor PASSED     [ 81%]
+tests/test_envios.py::test_CN_22_sabado_vip_cupon PASSED                 [ 85%]
+tests/test_envios.py::test_CN_23_cupon_inexistente_se_ignora PASSED      [ 88%]
+tests/test_envios.py::test_CN_24_caso_integracion_ejemplo PASSED         [ 92%]
+tests/test_envios.py::test_CN_25_redondeo_50_hacia_arriba PASSED         [ 96%]
+tests/test_envios.py::test_CW_01_flag_eliminado_de_la_interfaz PASSED    [100%]
+
+============================= 27 passed in 0.06s ==============================
+

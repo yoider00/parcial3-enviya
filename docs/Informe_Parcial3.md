@@ -510,7 +510,94 @@ los defectos.
 
 ## Parte 6 · Mantenimiento y refactorización (0,9 pts)
 
-*(≥6 code smells con nombre técnico y línea, clasificación del mantenimiento, refactor con Estrategia y UML, regresión en verde, antes/después)*
+### 6.1 Malos olores (code smells) identificados en el heredado v1.0.0
+
+| # | Nombre técnico | Dónde (línea de `envios.py` v1.0.0) | Deuda técnica que genera |
+|---|---|---|---|
+| 1 | **Long Function** | `calc`, líneas 16–45: 30 líneas, 13 decisiones, V(G)=14 | Cualquier cambio toca una sola función que mezcla validación, tarifas, recargos, promos y formato: alto riesgo de regresión |
+| 2 | **Magic Numbers** | 6000 (l. 20), 9000 (l. 22/24), 800 (l. 24), 0,05 (l. 35), 0,10 (l. 40), 5000 (l. 41–42), 100 (l. 45) | Las reglas de negocio son invisibles: cambiar una tarifa exige leer y adivinar; ya causó DEF-01 (50 en lugar de PMAX) |
+| 3 | **Switch Statements** | cadenas `if/elif` de zona (l. 25–30) y de cliente (l. 34–37) | Agregar una zona obliga a modificar `calc` (principio abierto/cerrado roto); es la causa estructural de DEF-02 |
+| 4 | **Dead Code (asignación inútil)** | `t = t` en la rama urbana (l. 26) | No-op que hace al lector dudar si hay intención oculta; ruido que se hereda a cada mantenimiento |
+| 5 | **Boolean Flag Parameter** | parámetro `flag` (l. 16, usado en l. 43–44) | Dos comportamientos en un mismo contrato; quien llama decide por un booleano la salida de consola, acoplando cálculo con presentación |
+| 6 | **Nested Conditionals** | `if cup != None:` → `if cup == "ENVIO10":` (l. 38–40) | Anidamiento innecesario que duplica caminos y oculta casos (el cupón desconocido pasa silencioso) |
+| 7 | **Primitive Obsession** | zona y cliente como cadenas sueltas sin validación central (l. 25, 34) | Los valores inválidos no se detectan: origen directo de los defectos DEF-02 y DEF-03 |
+
+### 6.2 Clasificación del tipo de mantenimiento
+
+| Cambio | Tipo | Justificación |
+|---|---|---|
+| Corregir DEF-01…DEF-07 (rama `fix/DEF-xx`) | **Correctivo** | Reparar fallas frente a la especificación ya entregada |
+| Extraer funciones (`_validar_entradas`, `_tarifa_base`, `_descuento_maximo`, `_aplicar_finde`, `_con_minimo_y_redondeo`) | **Preventivo** | Reducir la deuda técnica (Long Function) para que futuros cambios sean baratos |
+| Constantes con nombre en lugar de números mágicos | **Preventivo** | Hacer visibles las reglas de negocio |
+| Patrón Estrategia en zonas | **Preventivo** | Preparar el sistema para nuevas zonas (se usará en la Parte 8) |
+| Eliminar `flag` | **Perfectivo** | Mejora de la interfaz del servicio pedido por el negocio de calidad; rompe contrato → versión major |
+
+### 6.3 Refactorización aplicada
+
+Cambios en `envios.py` (rama `refactor/estrategia`, ya integrada a master):
+
+1. **Extraer funciones**: validación (R1/R2), tarifa base (R3), descuento máximo (R6), finde (R5) y mínimo/redondeo (R8) viven ahora en funciones propias.
+2. **Constantes con nombre**: `PESO_MAXIMO`, `TARIFA_TRAMO1/2`, `EXTRA_POR_KG_SOBRE_L2`, `COSTO_MINIMO`, `REDONDEO`, `DESC_FRECUENTE`, `DESC_CUPON_ENVIO10`, `FIN_DE_SEMANA`.
+3. **Eliminar `flag`**: la función ya no imprime; el contrato es `calc(p, z, c, d, cup=None)` (cambio de interfaz → justifica versión major, ver Parte 7).
+4. **Patrón Estrategia en zonas**: jerarquía `RecargoZona` con `ZonaUrbana`, `ZonaRural`, `ZonaNacional` y el diccionario `ESTRATEGIA_ZONA` — agregar una zona nueva es crear una clase y registrarla, sin tocar `calc` (se explota en la Parte 8 con la zona insular).
+
+Diagrama de clases UML del patrón:
+
+```mermaid
+classDiagram
+    class RecargoZona {
+        <<abstract>>
+        +aplicar(costo) float
+    }
+    RecargoZona <|-- ZonaUrbana
+    RecargoZona <|-- ZonaRural
+    RecargoZona <|-- ZonaNacional
+    class ZonaUrbana {
+        +aplicar(costo) float
+    }
+    class ZonaRural {
+        -RECARGO_RURAL : 0,25
+        +aplicar(costo) float
+    }
+    class ZonaNacional {
+        -RECARGO_NACIONAL : 0,40
+        +aplicar(costo) float
+    }
+    class calc {
+        <<función>>
+    }
+    calc ..> RecargoZona : usa vía ESTRATEGIA_ZONA
+```
+
+### 6.4 Corrección de los defectos reportados
+
+| Defecto | Corrección aplicada | Rama |
+|---|---|---|
+| DEF-01 | `p > 45` (PMAX con nombre en v2.0.0) | `fix/DEF-01` |
+| DEF-02 | validación `z not in ("urbana","rural","nacional")` → luego `z not in ESTRATEGIA_ZONA` | `fix/DEF-02` |
+| DEF-03 | validación `1 <= d <= 7` | `fix/DEF-03` |
+| DEF-04 | condición de finde `d > 5` → luego `d in FIN_DE_SEMANA` (6 y 7) | `fix/DEF-04` |
+| DEF-05 | recargo de finde movido después de los descuentos | `fix/DEF-05` |
+| DEF-06 | descuento único = máximo de los disponibles | `fix/DEF-06` |
+| DEF-07 | `int(t/100 + 0.5) * 100` (50 hacia arriba) | `fix/DEF-07` |
+
+### 6.5 Regresión
+
+Se volvieron a ejecutar **las mismas 27 pruebas** contra el código corregido y refactorizado:
+**27/27 pasan (100 %)** — evidencia: `docs/evidencias/parte6_regresion_verde.txt` (+ captura).
+
+Única adaptación de la suite: el caso CW-01 (ruta del `flag`) se reemplazó por una prueba de que el parámetro ya **no existe** (`TypeError`), porque quitarlo cambió la interfaz de la función. Es un cambio de la prueba que documenta el nuevo contrato, no un caso eliminado.
+
+### 6.6 Antes y después
+
+| Métrica | v1.0.0 (heredado) | v2.0.0 (refactorizado) |
+|---|---|---|
+| Complejidad ciclomática | **14** en una sola función | **16 total en 6 funciones, máximo 4 por función** (validar 4, tarifa 3, descuento 4, finde 2, redondeo 2, calc 1) |
+| Líneas de código (sin comentarios/blancas) | 37 | 79 (la estructura polimórfica agrega líneas pero baja la complejidad local) |
+| % de casos que pasan | 59,3 % (16/27) | **100 %** (27/27) |
+| Cobertura de sentencias / ramas | 100 % / 100 % | **98 % / 98 %** — la línea del mínimo ($5.000) queda como guardia defensiva: con la regla B par (solo el mayor, 10 % máx.) el costo nunca baja de $5.400, y por eso ningún caso la ejecuta (ver análisis 3.6). Es la línea menos dañina posible de dejar sin cubrir y está justificada. |
+
+Conclusión: la refactorización no buscó menos líneas sino **complejidad repartida y reglas visibles**; el sistema queda listo para crecer (zona insular de la Parte 8) sin tocar `calc`.
 
 ---
 

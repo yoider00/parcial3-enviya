@@ -1,0 +1,44 @@
+﻿*   2869bd7 merge test/suite: suite adaptada a la interfaz v2.0.0
+|\  
+| * e7a3c50 test/suite: CW-01 actualizado al contrato v2.0.0 sin flag
+|/  
+*   b8f0253 merge refactor/estrategia: estrutura nueva sin flag
+|\  
+| * bbdcb80 refactor/estrategia: funciones extraidas, constantes, Estrategia de zonas, flag eliminado
+|/  
+*   c64e5fb merge fix/DEF-07: redondeo correcto
+|\  
+| * 1fe462b fix/DEF-07: redondeo 50 hacia arriba (R8)
+|/  
+*   c8bd8e8 merge fix/DEF-06: descuento maximo unico
+|\  
+| * 6129e49 fix/DEF-06: solo el mayor descuento (R6/B)
+|/  
+*   bc28246 merge fix/DEF-05: orden del recargo de finde
+|\  
+| * b351b5d fix/DEF-05: finde despues de descuentos (R5/E)
+|/  
+*   03119cf merge fix/DEF-04: sabado con recargo
+|\  
+| * 93ab644 fix/DEF-04: fin de semana incluye sabado d>5 (R5)
+|/  
+*   f33dce3 merge fix/DEF-03: validacion de dia
+|\  
+| * 8c5b444 fix/DEF-03: validar dia 1..7 (R2)
+|/  
+*   abe5eb6 merge fix/DEF-02: validacion de zona
+|\  
+| * 3bd7cf0 fix/DEF-02: validar zona (R2)
+|/  
+*   88d5993 merge fix/DEF-01: PMAX=45
+|\  
+| * cf5a5a3 fix/DEF-01: PMAX 50->45 (R1)
+|/  
+* bf207bd Parte 5: suite completa de 27 pruebas, cobertura 100%, 7 defectos reportados y metricas
+* bfd89d0 Parte 4: caja blanca - grafo de flujo, V(G)=14 por 3 metodos, 14 caminos y cobertura
+* 2f71187 Parte 3: caja negra - particiones, limites, tabla de decision y matriz de 24 casos
+* e7bc04c Update student name in README.md
+* e7d588d Parte 2: plan de pruebas (alcance, niveles, estrategia, riesgos, criterios)
+* ffe1e93 Parte 1: especificacion R1-R8, 3 historias de usuario y matriz de trazabilidad
+* b2556f4 v1.0.0: codigo heredado de EnviaYa con CONFIG del codigo 0182320076
+
